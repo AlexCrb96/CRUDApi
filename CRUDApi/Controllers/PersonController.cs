@@ -20,8 +20,12 @@ namespace CRUDApi.Controllers
 
         // GET: api/<PersonController>
         [HttpGet]
-        public IActionResult Get()
+        public IActionResult GetAllPersons()
         {
+            if (_persons == null ||  _persons.Count == 0)
+            {
+                return NotFound("No persons found.");
+            }
             return Ok(_persons);
         }
 
