@@ -332,5 +332,57 @@ namespace CRUDApi_UnitTests.Controllers_UnitTests
             Assert.Equal(StatusCodes.Status404NotFound, result.StatusCode);
             Assert.Equal("Address with ID 3 does not exist.", result.Value);
         }
+
+        [Fact]
+        public void DeleteAddress_ReturnsOk_OnValidInput()
+        {
+            // Arrange
+            var testAddresses = new List<Address>()
+            {
+                new Address { Id = 1, City = "Sibiu", Street = "Autogarii", Number = 10 },
+                new Address { Id = 2, City = "Sibiu", Street = "Lemnelor", Number = 2 },
+            };
+            var toBeDeleted = new Address
+            {
+                Id = 3,
+                City = "Craiova",
+                Street = "Bucovina",
+                Number = 10
+            };
+            testAddresses.Add(toBeDeleted);
+            int originalCount = testAddresses.Count;
+            var controller = ArrangeListOfAddreses(testAddresses);
+
+            // Act
+            var result = controller.DeleteAddress(3) as OkObjectResult;
+            var outputValue = result.Value as Address;
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(StatusCodes.Status200OK, result.StatusCode);
+            Assert.Equal(outputValue.Id, toBeDeleted.Id);
+            Assert.Equal(originalCount - 1, testAddresses.Count);
+        }
+
+        [Fact]
+        public void DeleteAddress_ReturnsNotFound_OnInvalidId()
+        {
+            // Arrange
+            var testAddresses = new List<Address>()
+            {
+                new Address { Id = 1, City = "Sibiu", Street = "Autogarii", Number = 10 },
+                new Address { Id = 2, City = "Sibiu", Street = "Lemnelor", Number = 2 },
+            };
+            var controller = ArrangeListOfAddreses(testAddresses);
+
+            // Act
+            var result = controller.DeleteAddress(3) as NotFoundObjectResult;
+            var outputValue = result.Value;
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(StatusCodes.Status404NotFound, result.StatusCode);
+            Assert.Equal("Address with ID 3 does not exist.", outputValue);
+        }
     }
 }

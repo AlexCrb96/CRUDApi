@@ -77,8 +77,16 @@ namespace CRUDApi.Controllers
 
         // DELETE api/<AddressController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public IActionResult DeleteAddress(int id)
         {
+            Address toBeDeleted = _addresses.FirstOrDefault(a => a.Id == id);
+            if (toBeDeleted == null)
+            {
+                return NotFound($"Address with ID {id} does not exist.");
+            }
+
+            _addresses.Remove(toBeDeleted);
+            return Ok(toBeDeleted);
         }
     }
 }

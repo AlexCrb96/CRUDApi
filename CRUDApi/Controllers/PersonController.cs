@@ -86,7 +86,7 @@ namespace CRUDApi.Controllers
 
         // DELETE api/<PersonController>/5
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public IActionResult DeletePerson(int id)
         {
             Person toBeDeleted = _persons.FirstOrDefault(p => p.Id == id);
 
