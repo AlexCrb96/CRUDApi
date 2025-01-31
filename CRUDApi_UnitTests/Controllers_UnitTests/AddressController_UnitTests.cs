@@ -249,5 +249,88 @@ namespace CRUDApi_UnitTests.Controllers_UnitTests
             Assert.Equal(StatusCodes.Status400BadRequest, result.StatusCode);
             Assert.Equal("Address data is invalid.", outputValue);
         }
+
+        [Fact]
+        public void EditAddressById_ReturnsOkResult_OnValidData()
+        {
+            // Arrange
+            var testAddresses = new List<Address>()
+            {
+                new Address { Id = 1, City = "Sibiu", Street = "Autogarii", Number = 10 },
+                new Address { Id = 2, City = "Sibiu", Street = "Lemnelor", Number = 2 },
+            };
+            var controller = ArrangeListOfAddreses(testAddresses);
+            Address editExistingAddress = new Address
+            {
+                City = "Sibiu",
+                Street = "Gladiolelor",
+                Number = 23,
+            };
+
+            // Act
+            var result = controller.EditAddressById(1, editExistingAddress) as OkObjectResult;
+            var outputValue = result.Value as Address;
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(StatusCodes.Status200OK, result.StatusCode);
+            Assert.Equal(editExistingAddress.Street, outputValue.Street);
+            Assert.Equal(editExistingAddress.Number, outputValue.Number);
+        }
+
+        [Fact]
+        public void EditAddressById_ReturnsBadRequest_OnInvalidData()
+        {
+            // Arrange
+            var testAddresses = new List<Address>()
+            {
+                new Address { Id = 1, City = "Sibiu", Street = "Autogarii", Number = 10 },
+                new Address { Id = 2, City = "Sibiu", Street = "Lemnelor", Number = 2 },
+            };
+            var controller = ArrangeListOfAddreses(testAddresses);
+            Address editExistingAddress = new Address
+            {
+                City = "Sibiu",
+                Street = "",
+                Number = 23,
+            };
+            controller.ModelState.AddModelError("Street", "Street is required.");
+
+            // Act
+            var result = controller.EditAddressById(1, editExistingAddress) as BadRequestObjectResult;
+            var outputValue = result.Value;
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(StatusCodes.Status400BadRequest, result.StatusCode);
+            Assert.Equal("Address data is invalid.", outputValue);
+        }
+
+        [Fact]
+        public void EditAddressById_ReturnsNotFound_OnInvalidId()
+        {
+            // Arrange
+            var testAddresses = new List<Address>()
+            {
+                new Address { Id = 1, City = "Sibiu", Street = "Autogarii", Number = 10 },
+                new Address { Id = 2, City = "Sibiu", Street = "Lemnelor", Number = 2 },
+            };
+            var controller = ArrangeListOfAddreses(testAddresses);
+            Address editExistingAddress = new Address
+            {
+                City = "Sibiu",
+                Street = "Gladiolelor",
+                Number = 23,
+            };
+
+            // Act
+            var result = controller.EditAddressById(3, editExistingAddress) as NotFoundObjectResult;
+            var outputValue = result.Value;
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(StatusCodes.Status404NotFound, result.StatusCode);
+            Assert.Equal("Address with ID 3 does not exist.", result.Value);
+        }
     }
 }

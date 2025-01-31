@@ -45,29 +45,30 @@ namespace CRUDApi.Controllers
 
         // POST api/<PersonController>
         [HttpPost]
-        public IActionResult CreatePerson([FromBody] Person newPerson)
+        public IActionResult CreatePerson([FromBody] Person input)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest("Person data is not valid.");
             }
 
-            if (_persons.Any(p => p.Id == newPerson.Id))
+            if (_persons.Any(p => p.Id == input.Id))
             {
-                return Conflict($"A person with ID {newPerson.Id} already exists.");
+                return Conflict($"A person with ID {input.Id} already exists.");
             }
 
-            _persons.Add(newPerson);
-            return CreatedAtAction(nameof(GetPersonById), new { id = newPerson.Id }, newPerson);
+            _persons.Add(input);
+
+            return CreatedAtAction(nameof(GetPersonById), new { id = input.Id }, input);
         }
 
         // PUT api/<PersonController>/5
         [HttpPut("{id}")]
-        public IActionResult EditPersonById(int id, [FromBody] Person updatedPerson)
+        public IActionResult EditPersonById(int id, [FromBody] Person input)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest("Person data is not valid.");
             }
 
             Person output = _persons.FirstOrDefault(p => p.Id == id);
@@ -76,9 +77,9 @@ namespace CRUDApi.Controllers
                 return NotFound($"Person with ID {id} does not exist.");
             }
 
-            output.FirstName = updatedPerson.FirstName;
-            output.LastName = updatedPerson.LastName;
-            output.Age = updatedPerson.Age;
+            output.FirstName = input.FirstName;
+            output.LastName = input.LastName;
+            output.Age = input.Age;
 
             return Ok(output);
         }
