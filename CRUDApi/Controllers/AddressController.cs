@@ -18,20 +18,39 @@ namespace CRUDApi.Controllers
             {
                 return NotFound("No addresses found.");
             }
+
             return Ok(_addresses);
         }
 
         // GET api/<AddressController>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public IActionResult GetAddressById(int id)
         {
-            return "value";
+            Address output = _addresses.FirstOrDefault(a => a.Id == id);
+            if (output == null) 
+            {
+                return NotFound($"Address with ID {id} does not exist.");
+            }
+
+            return Ok(output);
         }
 
         // POST api/<AddressController>
         [HttpPost]
-        public void Post([FromBody] string value)
+        public IActionResult CreateAddress([FromBody] Address newAddress)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Address data is invalid.");
+            }
+
+            if (_addresses.Any(a => a.Id == newAddress.Id))
+            {
+                return Conflict($"Address with ID {newAddress.Id} already exists.");
+            }
+
+            _addresses.Add(newAddress);
+            return CreatedAtAction(nameof(GetAddressById), new { id = newAddress.Id }, newAddress);
         }
 
         // PUT api/<AddressController>/5

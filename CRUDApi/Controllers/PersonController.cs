@@ -22,10 +22,11 @@ namespace CRUDApi.Controllers
         [HttpGet]
         public IActionResult GetAllPersons()
         {
-            if (_persons == null ||  _persons.Count == 0)
+            if (_persons == null || _persons.Count == 0)
             {
                 return NotFound("No persons found.");
             }
+
             return Ok(_persons);
         }
 
