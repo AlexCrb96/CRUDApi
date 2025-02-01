@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using CRUDApi.Controllers;
-using CRUDApi.Models;
+using EFDataAccessLibrary.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using Microsoft.AspNetCore.Http;

@@ -1,6 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace CRUDApi.Models
+namespace EFDataAccessLibrary.Models
 {
     public class Address
     {
@@ -14,8 +19,7 @@ namespace CRUDApi.Models
         [StringLength(50, ErrorMessage = "Street name must be between 1 and 50 characters.")]
         public string Street { get; set; }
         [Required]
-        [Range(1,2500, ErrorMessage = "Street number must be between 1 and 2500.")]
-        public int Number {  get; set; }
-
+        [Range(1, 2500, ErrorMessage = "Street number must be between 1 and 2500.")]
+        public int Number { get; set; }
     }
 }

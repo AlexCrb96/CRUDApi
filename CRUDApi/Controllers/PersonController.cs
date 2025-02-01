@@ -1,4 +1,4 @@
-﻿using CRUDApi.Models;
+﻿using EFDataAccessLibrary.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.Eventing.Reader;
 
