@@ -21,5 +21,7 @@ namespace EFDataAccessLibrary.Models
 
         [Range(1, 120, ErrorMessage = "Age must be between 1 and 120.")]
         public int Age { get; set; }
+
+        public List<Address> Addresses { get; set; } = new List<Address>();
     }
 }
