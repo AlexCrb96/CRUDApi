@@ -1,4 +1,5 @@
 using EFDataAccessLibrary.DataAccess;
+using EFDataAccessLibrary.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +16,10 @@ builder.Services.AddDbContext<PeopleContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
 });
+
+// Add custom services
+builder.Services.AddScoped<PersonService>();
+builder.Services.AddScoped<AddressService>();
 
 var app = builder.Build();
 

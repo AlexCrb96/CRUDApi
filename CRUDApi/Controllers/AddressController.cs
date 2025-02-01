@@ -1,4 +1,6 @@
-﻿using EFDataAccessLibrary.Models;
+﻿using EFDataAccessLibrary.DataAccess;
+using EFDataAccessLibrary.Models;
+using EFDataAccessLibrary.Services;
 using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -9,24 +11,33 @@ namespace CRUDApi.Controllers
     [ApiController]
     public class AddressController : ControllerBase
     {
-        private static List<Address> _addresses = new List<Address>();
+        private readonly PeopleContext _peopleContext;
+        private readonly AddressService _addressService;
+        private readonly PersonService _personService;
+        public AddressController(PeopleContext dbContext, AddressService addressService, PersonService personService) 
+        { 
+            _peopleContext = dbContext;
+            _addressService = addressService;
+            _personService = personService;
+        }
+
         // GET: api/<AddressController>
         [HttpGet]
         public IActionResult GetAllAddresses()
         {
-            if (_addresses == null ||  _addresses.Count == 0)
+            if (_peopleContext.Addresses == null || !_peopleContext.Addresses.Any())
             {
                 return NotFound("No addresses found.");
             }
 
-            return Ok(_addresses);
+            return Ok(_addressService.GetAllAddresses());
         }
 
         // GET api/<AddressController>/5
         [HttpGet("{id}")]
         public IActionResult GetAddressById(int id)
         {
-            Address output = _addresses.FirstOrDefault(a => a.Id == id);
+            Address output = _addressService.GetAddressById(id);
             if (output == null) 
             {
                 return NotFound($"Address with ID {id} does not exist.");
@@ -44,12 +55,22 @@ namespace CRUDApi.Controllers
                 return BadRequest("Address data is invalid.");
             }
 
-            if (_addresses.Any(a => a.Id == input.Id))
-            {
-                return Conflict($"Address with ID {input.Id} already exists.");
-            }
+            //if (input.Persons.Count == 0)
+            //{
+            //    return BadRequest("The address must be assigned to at least one person");
+            //}
 
-            _addresses.Add(input);
+            //foreach (Person person in input.Persons)
+            //{
+            //    Person existingPerson = _peopleContext.People.FirstOrDefault(p =>  p.Id == person.Id );
+            //    if (existingPerson == null)
+            //    {
+            //        CreatePerson
+            //    }
+            //}
+
+            _addressService.AddAddress(input);
+
             return CreatedAtAction(nameof(GetAddressById), new { id = input.Id }, input);
         }
 
@@ -62,15 +83,13 @@ namespace CRUDApi.Controllers
                 return BadRequest("Address data is invalid.");
             }
 
-            Address output = _addresses.FirstOrDefault(a => a.Id == id);
+            Address output = _addressService.GetAddressById(id);
             if (output == null)
             {
                 return NotFound($"Address with ID {id} does not exist.");
             }
 
-            output.City = input.City;
-            output.Street = input.Street;
-            output.Number = input.Number;
+            _addressService.ModifyAddress(input, output);
 
             return Ok(output);
         }
@@ -79,13 +98,14 @@ namespace CRUDApi.Controllers
         [HttpDelete("{id}")]
         public IActionResult DeleteAddress(int id)
         {
-            Address toBeDeleted = _addresses.FirstOrDefault(a => a.Id == id);
+            Address toBeDeleted = _addressService.GetAddressById(id);
             if (toBeDeleted == null)
             {
                 return NotFound($"Address with ID {id} does not exist.");
             }
 
-            _addresses.Remove(toBeDeleted);
+            _addressService.DeleteAddress(toBeDeleted);
+
             return Ok(toBeDeleted);
         }
     }
