@@ -1,10 +1,7 @@
-﻿using EFDataAccessLibrary.DataAccess;
+﻿using AutoMapper;
+using EFDataAccessLibrary.DataAccess;
 using EFDataAccessLibrary.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace EFDataAccessLibrary.Services
 {
@@ -22,15 +19,28 @@ namespace EFDataAccessLibrary.Services
             return _peopleContext.People.ToList();
         }
 
+        public List<Person> GetAllPersonsWithAddresses()
+        {
+            return _peopleContext.People.Include(p => p.Addresses).ToList();
+        }
+
         public Person GetPersonById(int id)
         {
             return _peopleContext.People.FirstOrDefault(p => p.Id == id);
         }
+        
+        public Person GetPersonByIdWithAddresses(int id)
+        {
+            return _peopleContext.People.Include(p => p.Addresses)
+                                        .FirstOrDefault(p => p.Id == id);
+        }
 
-        public void AddPerson(Person input)
+        public int AddPerson(Person input)
         {
             _peopleContext.People.Add(input);
             _peopleContext.SaveChanges();
+
+            return input.Id;
         }
 
         public void ModifyPerson(Person input, Person output)

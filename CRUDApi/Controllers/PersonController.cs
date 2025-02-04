@@ -1,8 +1,10 @@
-﻿using EFDataAccessLibrary.DataAccess;
+﻿using AutoMapper;
+using CRUDApi.Shared;
+using CRUDApi.DTOs.Persons;
+using EFDataAccessLibrary.DataAccess;
 using EFDataAccessLibrary.Models;
 using EFDataAccessLibrary.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics.Eventing.Reader;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -15,12 +17,14 @@ namespace CRUDApi.Controllers
         private readonly PeopleContext _peopleContext;
         private readonly PersonService _personService;
         private readonly AddressService _addressService;
+        private readonly IMapper _mapper;
 
-        public PersonController(PeopleContext dbContext, PersonService personService, AddressService addressService)
+        public PersonController(PeopleContext dbContext, PersonService personService, AddressService addressService, IMapper mapper)
         {
             _peopleContext = dbContext;
             _personService = personService;
             _addressService = addressService;
+            _mapper = mapper;
         }
 
         // GET: api/<PersonController>
@@ -29,20 +33,27 @@ namespace CRUDApi.Controllers
         {
             if (_peopleContext.People == null || !_peopleContext.People.Any())
             {
-                return NotFound("No persons found.");
+                return NotFound(string.Format(ResponseMessages.NothingFound, "persons"));
             }
 
-            return Ok(_personService.GetAllPersons());
+            List<Person> AllPersons = _personService.GetAllPersonsWithAddresses();
+            List<PersonResponseDTO> PersonDTOs = new List<PersonResponseDTO>();
+            foreach (Person person in AllPersons)
+            {
+                PersonResponseDTO newPersonDTO = _mapper.Map<PersonResponseDTO>(person);
+                PersonDTOs.Add(newPersonDTO);
+            }
+            return Ok(PersonDTOs);
         }
 
         // GET api/<PersonController>/5
         [HttpGet("{id}")]
         public IActionResult GetPersonById(int id)
         {
-            var output = _personService.GetPersonById(id);
+            var output = _mapper.Map<PersonResponseDTO>(_personService.GetPersonByIdWithAddresses(id));
             if (output == null)
             {
-                return NotFound($"Person with ID {id} does not exist.");
+                return NotFound(string.Format(ResponseMessages.IdNotFound, "Person", id));
             }
 
             return Ok(output);
@@ -50,36 +61,57 @@ namespace CRUDApi.Controllers
 
         // POST api/<PersonController>
         [HttpPost]
-        public IActionResult AddPerson([FromBody] Person input)
+        public IActionResult CreatePerson([FromBody] PersonRequestDTO input)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest("Person data is not valid.");
+                return BadRequest(string.Format(ResponseMessages.InputNotValid, "Person"));
             }
 
-            _personService.AddPerson(input);
+            Person inputPerson = _mapper.Map<Person>(input);
+            List<Address> assignedAddresses = _peopleContext.Addresses.Where(a => input.AddressIds.Contains(a.Id)).ToList();
+            if (assignedAddresses.Count != input.AddressIds.Count)
+            {
+                return NotFound(string.Format(ResponseMessages.OneOrMoreNotFound, "addresses"));
+            }
+            inputPerson.Addresses = assignedAddresses;
 
-            return CreatedAtAction(nameof(GetPersonById), new { id = input.Id }, input);
+            int outputPersonId = _personService.AddPerson(inputPerson);
+            if (outputPersonId == 0)
+            {
+                return BadRequest(string.Format(ResponseMessages.FailedToCreate, "person"));
+            }
+
+            return CreatedAtAction(nameof(GetPersonById), new { id = outputPersonId }, input);
         }
 
         // PUT api/<PersonController>/5
         [HttpPut("{id}")]
-        public IActionResult EditPersonById(int id, [FromBody] Person input)
+        public IActionResult EditPersonById(int id, [FromBody] PersonRequestDTO input)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest("Person data is not valid.");
+                return BadRequest(string.Format(ResponseMessages.InputNotValid, "Person"));
             }
 
-            var output = _personService.GetPersonById(id);
-            if (output == null)
+            Person outputPerson = _personService.GetPersonById(id);
+            if (outputPerson == null)
             {
-                return NotFound($"Person with ID {id} does not exist.");
+                return NotFound(string.Format(ResponseMessages.IdNotFound, "Person", id));
             }
 
-            _personService.ModifyPerson(input, output);
+            Person inputPerson = _mapper.Map<Person>(input);
+            List<Address> assignedAddresses = _peopleContext.Addresses.Where(a => input.AddressIds.Contains(a.Id)).ToList();
+            if (assignedAddresses.Count != input.AddressIds.Count)
+            {
+                return NotFound(string.Format(ResponseMessages.OneOrMoreNotFound, "addresses"));
+            }
+            inputPerson.Addresses = assignedAddresses;
+            
+            _personService.ModifyPerson(inputPerson, outputPerson);
 
-            return Ok(output);
+            PersonResponseDTO outputPersonDTO = _mapper.Map<PersonResponseDTO>(outputPerson);
+            return Ok(outputPersonDTO);
         }
 
         // DELETE api/<PersonController>/5
@@ -90,7 +122,7 @@ namespace CRUDApi.Controllers
 
             if (toBeDeleted == null)
             {
-                return NotFound($"Person with ID {id} does not exist.");
+                return NotFound(string.Format(ResponseMessages.IdNotFound, "Person", id));
             }
 
             _personService.DeletePerson(toBeDeleted);
