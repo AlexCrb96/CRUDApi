@@ -37,26 +37,21 @@ namespace CRUDApi.Controllers
             }
 
             List<Person> AllPersons = _personService.GetAllPersonsWithAddresses();
-            List<PersonResponseDTO> PersonDTOs = new List<PersonResponseDTO>();
-            foreach (Person person in AllPersons)
-            {
-                PersonResponseDTO newPersonDTO = _mapper.Map<PersonResponseDTO>(person);
-                PersonDTOs.Add(newPersonDTO);
-            }
-            return Ok(PersonDTOs);
+            
+            return Ok(_mapper.Map<List<PersonResponseDTO>>(AllPersons));
         }
 
         // GET api/<PersonController>/5
         [HttpGet("{id}")]
         public IActionResult GetPersonById(int id)
         {
-            var output = _mapper.Map<PersonResponseDTO>(_personService.GetPersonByIdWithAddresses(id));
-            if (output == null)
+            var outputPerson = _personService.GetPersonByIdWithAddresses(id);
+            if (outputPerson == null)
             {
                 return NotFound(string.Format(ResponseMessages.IdNotFound, "Person", id));
             }
 
-            return Ok(output);
+            return Ok(_mapper.Map<PersonResponseDTO>(outputPerson));
         }
 
         // POST api/<PersonController>
@@ -110,8 +105,7 @@ namespace CRUDApi.Controllers
             
             _personService.ModifyPerson(inputPerson, outputPerson);
 
-            PersonResponseDTO outputPersonDTO = _mapper.Map<PersonResponseDTO>(outputPerson);
-            return Ok(outputPersonDTO);
+            return Ok(_mapper.Map<PersonResponseDTO>(outputPerson));
         }
 
         // DELETE api/<PersonController>/5
