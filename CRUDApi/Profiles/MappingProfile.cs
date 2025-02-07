@@ -12,6 +12,7 @@ namespace CRUDApi.Profiles
             CreateMap<PersonRequestDTO, Person>();
             CreateMap<AddressRequestDTO, Address>();
             CreateMap<Person, PersonResponseDTO>();
+            CreateMap<Person, PersonWithAddressesResponseDTO>();
             CreateMap<Address, AddressResponseDTO>();
         }
     }

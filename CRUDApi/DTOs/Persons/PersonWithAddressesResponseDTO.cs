@@ -4,7 +4,7 @@ using CRUDApi.DTOs.Addresses;
 
 namespace CRUDApi.DTOs.Persons
 {
-    public class PersonResponseDTO
+    public class PersonWithAddressesResponseDTO
     {
         [Required]
         [StringLength(50, ErrorMessage = "First name must be between 1 and 50 characters.")]
@@ -16,5 +16,7 @@ namespace CRUDApi.DTOs.Persons
 
         [Range(1, 120, ErrorMessage = "Age must be between 1 and 120.")]
         public int Age { get; set; }
+
+        public List<AddressResponseDTO> Addresses { get; set; } = new List<AddressResponseDTO>();
     }
 }
