@@ -36,14 +36,41 @@ namespace CRUDApi.Controllers
                 return NotFound(string.Format(ResponseMessages.NothingFound, "persons"));
             }
 
-            List<Person> AllPersons = _personService.GetAllPersonsWithAddresses();
+            List<Person> AllPersons = _personService.GetAllPersons();
             
             return Ok(_mapper.Map<List<PersonResponseDTO>>(AllPersons));
+        }
+        
+        // GET: api/<PersonController>/with-addresses
+        [HttpGet("with-addresses")]
+        public IActionResult GetAllPersonsWithAddresses()
+        {
+            if (_peopleContext.People == null || !_peopleContext.People.Any())
+            {
+                return NotFound(string.Format(ResponseMessages.NothingFound, "persons"));
+            }
+
+            List<Person> AllPersons = _personService.GetAllPersonsWithAddresses();
+            
+            return Ok(_mapper.Map<List<PersonWithAddressesResponseDTO>>(AllPersons));
         }
 
         // GET api/<PersonController>/5
         [HttpGet("{id}")]
         public IActionResult GetPersonById(int id)
+        {
+            var outputPerson = _personService.GetPersonById(id);
+            if (outputPerson == null)
+            {
+                return NotFound(string.Format(ResponseMessages.IdNotFound, "Person", id));
+            }
+
+            return Ok(_mapper.Map<PersonResponseDTO>(outputPerson));
+        }
+        
+        // GET api/<PersonController>/5
+        [HttpGet("{id}/with-addresses")]
+        public IActionResult GetPersonByIdWithAddresses(int id)
         {
             var outputPerson = _personService.GetPersonByIdWithAddresses(id);
             if (outputPerson == null)
@@ -51,7 +78,7 @@ namespace CRUDApi.Controllers
                 return NotFound(string.Format(ResponseMessages.IdNotFound, "Person", id));
             }
 
-            return Ok(_mapper.Map<PersonResponseDTO>(outputPerson));
+            return Ok(_mapper.Map<PersonWithAddressesResponseDTO>(outputPerson));
         }
 
         // POST api/<PersonController>
@@ -63,7 +90,7 @@ namespace CRUDApi.Controllers
                 return BadRequest(string.Format(ResponseMessages.InputNotValid, "Person"));
             }
 
-            Person inputPerson = _mapper.Map<Person>(input);
+            var inputPerson = _mapper.Map<Person>(input);
             List<Address> assignedAddresses = _peopleContext.Addresses.Where(a => input.AddressIds.Contains(a.Id)).ToList();
             if (assignedAddresses.Count != input.AddressIds.Count)
             {
@@ -77,7 +104,7 @@ namespace CRUDApi.Controllers
                 return BadRequest(string.Format(ResponseMessages.FailedToCreate, "person"));
             }
 
-            return CreatedAtAction(nameof(GetPersonById), new { id = outputPersonId }, input);
+            return CreatedAtAction(nameof(GetPersonById), new { id = outputPersonId }, _mapper.Map<PersonWithAddressesResponseDTO>(inputPerson));
         }
 
         // PUT api/<PersonController>/5
@@ -89,13 +116,13 @@ namespace CRUDApi.Controllers
                 return BadRequest(string.Format(ResponseMessages.InputNotValid, "Person"));
             }
 
-            Person outputPerson = _personService.GetPersonById(id);
+            var outputPerson = _personService.GetPersonByIdWithAddresses(id);
             if (outputPerson == null)
             {
                 return NotFound(string.Format(ResponseMessages.IdNotFound, "Person", id));
             }
 
-            Person inputPerson = _mapper.Map<Person>(input);
+            var inputPerson = _mapper.Map<Person>(input);
             List<Address> assignedAddresses = _peopleContext.Addresses.Where(a => input.AddressIds.Contains(a.Id)).ToList();
             if (assignedAddresses.Count != input.AddressIds.Count)
             {
@@ -105,7 +132,7 @@ namespace CRUDApi.Controllers
             
             _personService.ModifyPerson(inputPerson, outputPerson);
 
-            return Ok(_mapper.Map<PersonResponseDTO>(outputPerson));
+            return Ok(_mapper.Map<PersonWithAddressesResponseDTO>(outputPerson));
         }
 
         // DELETE api/<PersonController>/5

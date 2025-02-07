@@ -3,6 +3,7 @@ using EFDataAccessLibrary.DataAccess;
 using EFDataAccessLibrary.Models;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace EFDataAccessLibrary.Services
 {
     public class PersonService
@@ -21,17 +22,20 @@ namespace EFDataAccessLibrary.Services
 
         public List<Person> GetAllPersonsWithAddresses()
         {
-            return _peopleContext.People.Include(p => p.Addresses).ToList();
+            return _peopleContext.People
+                                        .Include(p => p.Addresses).ToList();
         }
 
         public Person GetPersonById(int id)
         {
-            return _peopleContext.People.FirstOrDefault(p => p.Id == id);
+            return _peopleContext.People
+                                        .FirstOrDefault(p => p.Id == id);
         }
         
         public Person GetPersonByIdWithAddresses(int id)
         {
-            return _peopleContext.People.Include(p => p.Addresses)
+            return _peopleContext.People
+                                        .Include(p => p.Addresses)
                                         .FirstOrDefault(p => p.Id == id);
         }
 
