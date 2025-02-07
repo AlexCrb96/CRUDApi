@@ -1,4 +1,7 @@
-﻿using EFDataAccessLibrary.DataAccess;
+﻿using AutoMapper;
+using CRUDApi.DTOs.Addresses;
+using CRUDApi.Shared;
+using EFDataAccessLibrary.DataAccess;
 using EFDataAccessLibrary.Models;
 using EFDataAccessLibrary.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -13,12 +16,13 @@ namespace CRUDApi.Controllers
     {
         private readonly PeopleContext _peopleContext;
         private readonly AddressService _addressService;
-        private readonly PersonService _personService;
-        public AddressController(PeopleContext dbContext, AddressService addressService, PersonService personService) 
+        private readonly IMapper _mapper;
+        
+        public AddressController(PeopleContext dbContext, AddressService addressService, IMapper mapper) 
         { 
             _peopleContext = dbContext;
             _addressService = addressService;
-            _personService = personService;
+            _mapper = mapper;
         }
 
         // GET: api/<AddressController>
@@ -27,86 +31,80 @@ namespace CRUDApi.Controllers
         {
             if (_peopleContext.Addresses == null || !_peopleContext.Addresses.Any())
             {
-                return NotFound("No addresses found.");
+                return NotFound(string.Format(ResponseMessages.NothingFound, "addresses"));
             }
-
-            return Ok(_addressService.GetAllAddresses());
+            
+            List<Address> addresses = _addressService.GetAllAddresses();
+            return Ok(_mapper.Map<List<AddressResponseDTO>>(addresses));
         }
 
         // GET api/<AddressController>/5
         [HttpGet("{id}")]
         public IActionResult GetAddressById(int id)
         {
-            Address output = _addressService.GetAddressById(id);
+            var output = _addressService.GetAddressById(id);
             if (output == null) 
             {
-                return NotFound($"Address with ID {id} does not exist.");
+                return NotFound(string.Format(ResponseMessages.IdNotFound, "Address", id));
             }
 
-            return Ok(output);
+            return Ok(_mapper.Map<AddressResponseDTO>(output));
         }
 
         // POST api/<AddressController>
         [HttpPost]
-        public IActionResult CreateAddress([FromBody] Address input)
+        public IActionResult CreateAddress([FromBody] AddressRequestDTO input)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest("Address data is invalid.");
+                return BadRequest(string.Format(ResponseMessages.InputNotValid, "Address"));
+            }
+            var inputAddress = _mapper.Map<Address>(input);
+            
+            int outputAddressId = _addressService.AddAddress(inputAddress);
+            if (outputAddressId == 0)
+            {
+                return BadRequest(string.Format(ResponseMessages.FailedToCreate, "address"));
             }
 
-            //if (input.Persons.Count == 0)
-            //{
-            //    return BadRequest("The address must be assigned to at least one person");
-            //}
-
-            //foreach (Person person in input.Persons)
-            //{
-            //    Person existingPerson = _peopleContext.People.FirstOrDefault(p =>  p.Id == person.Id );
-            //    if (existingPerson == null)
-            //    {
-            //        CreatePerson
-            //    }
-            //}
-
-            _addressService.AddAddress(input);
-
-            return CreatedAtAction(nameof(GetAddressById), new { id = input.Id }, input);
+            return CreatedAtAction(nameof(GetAddressById), new { id = outputAddressId }, _mapper.Map<AddressResponseDTO>(inputAddress));
         }
 
         // PUT api/<AddressController>/5
         [HttpPut("{id}")]
-        public IActionResult EditAddressById(int id, [FromBody] Address input)
+        public IActionResult EditAddressById(int id, [FromBody] AddressRequestDTO input)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest("Address data is invalid.");
+                return BadRequest(string.Format(ResponseMessages.InputNotValid, "Address"));
             }
 
-            Address output = _addressService.GetAddressById(id);
-            if (output == null)
+            var outputAddress = _addressService.GetAddressById(id);
+            if (outputAddress == null)
             {
-                return NotFound($"Address with ID {id} does not exist.");
+                return NotFound(string.Format(ResponseMessages.IdNotFound, "Address", id));
             }
+            
+            var inputAddress = _mapper.Map<Address>(input);
 
-            _addressService.ModifyAddress(input, output);
+            _addressService.ModifyAddress(inputAddress, outputAddress);
 
-            return Ok(output);
+            return Ok(_mapper.Map<AddressResponseDTO>(outputAddress));
         }
 
         // DELETE api/<AddressController>/5
         [HttpDelete("{id}")]
         public IActionResult DeleteAddress(int id)
         {
-            Address toBeDeleted = _addressService.GetAddressById(id);
+            var toBeDeleted = _addressService.GetAddressById(id);
             if (toBeDeleted == null)
             {
-                return NotFound($"Address with ID {id} does not exist.");
+                return NotFound(string.Format(ResponseMessages.IdNotFound, "Address", id));
             }
 
             _addressService.DeleteAddress(toBeDeleted);
 
-            return Ok(toBeDeleted);
+            return NoContent();
         }
     }
 }

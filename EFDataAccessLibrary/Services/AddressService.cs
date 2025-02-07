@@ -27,10 +27,12 @@ namespace EFDataAccessLibrary.Services
             return _peopleContext.Addresses.FirstOrDefault(a => a.Id == id);
         }
 
-        public void AddAddress(Address input)
+        public int AddAddress(Address input)
         {
             _peopleContext.Addresses.Add(input);
             _peopleContext.SaveChanges();
+            
+            return input.Id;
         }
 
         public void ModifyAddress(Address input, Address output)
