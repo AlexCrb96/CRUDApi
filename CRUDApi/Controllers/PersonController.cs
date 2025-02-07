@@ -16,14 +16,12 @@ namespace CRUDApi.Controllers
     {
         private readonly PeopleContext _peopleContext;
         private readonly PersonService _personService;
-        private readonly AddressService _addressService;
         private readonly IMapper _mapper;
 
-        public PersonController(PeopleContext dbContext, PersonService personService, AddressService addressService, IMapper mapper)
+        public PersonController(PeopleContext dbContext, PersonService personService, IMapper mapper)
         {
             _peopleContext = dbContext;
             _personService = personService;
-            _addressService = addressService;
             _mapper = mapper;
         }
 
