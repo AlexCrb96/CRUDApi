@@ -144,12 +144,15 @@ namespace CRUDApi.Controllers
             }
 
             var inputPerson = _mapper.Map<Person>(input);
-            List<Address> assignedAddresses = _peopleContext.Addresses.Where(a => input.AddressIds.Contains(a.Id)).ToList();
-            if (assignedAddresses.Count != input.AddressIds.Count)
+
+            try
+            {
+                _personService.AssignAddressesToPerson(inputPerson, input.AddressIds);
+            }
+            catch (KeyNotFoundException e)
             {
                 return NotFound(string.Format(ResponseMessages.OneOrMoreNotFound, "addresses"));
             }
-            inputPerson.Addresses = assignedAddresses;
             
             _personService.ModifyPerson(inputPerson, outputPerson);
 

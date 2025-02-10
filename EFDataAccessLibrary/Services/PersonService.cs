@@ -9,10 +9,12 @@ namespace EFDataAccessLibrary.Services
     public class PersonService
     {
         private readonly PeopleContext _peopleContext;
+        private readonly AddressService _addressService;
 
-        public PersonService(PeopleContext dbContext)
+        public PersonService(PeopleContext dbContext, AddressService addressService)
         {
             _peopleContext = dbContext;
+            _addressService = addressService;
         }
 
         public List<Person> GetAllPersons(bool includeAddresses)
@@ -91,6 +93,17 @@ namespace EFDataAccessLibrary.Services
             output.Addresses = input.Addresses;
 
             _peopleContext.SaveChanges();
+        }
+
+        public void AssignAddressesToPerson(Person output, List<int> addressIds)
+        {
+            var addresses = _addressService.GetAddressesByIds(addressIds);
+            if (addresses.Count != addressIds.Count)
+            {
+                throw new KeyNotFoundException("One or more addresses do not exist");
+            }
+            
+            output.Addresses = addresses;
         }
 
         public void DeletePerson(Person toBeDeleted)

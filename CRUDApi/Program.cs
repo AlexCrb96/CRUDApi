@@ -20,7 +20,6 @@ builder.Services.AddDbContext<PeopleContext>(options =>
 // Add custom services
 builder.Services.AddScoped<PersonService>();
 builder.Services.AddScoped<AddressService>();
-//builder.Services.AddScoped<AddressPersonLinkService>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 var app = builder.Build();

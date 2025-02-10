@@ -28,6 +28,11 @@ namespace EFDataAccessLibrary.Services
         {
             return _peopleContext.Addresses.FirstOrDefault(a => a.Id == id);
         }
+        
+        public List<Address> GetAddressesByIds(List<int> addressIds)
+        {
+            return _peopleContext.Addresses.Where(a => addressIds.Contains(a.Id)).ToList();
+        }
 
         public List<Address> GetAddressesByPartialStreetName(string partialStreetName)
         {
