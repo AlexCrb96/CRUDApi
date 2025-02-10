@@ -34,7 +34,7 @@ namespace CRUDApi.Controllers
                 return NotFound(string.Format(ResponseMessages.NothingFound, "persons"));
             }
 
-            List<Person> AllPersons = _personService.GetAllPersons();
+            List<Person> AllPersons = _personService.GetAllPersons(false);
             
             return Ok(_mapper.Map<List<PersonResponseDTO>>(AllPersons));
         }
@@ -48,7 +48,7 @@ namespace CRUDApi.Controllers
                 return NotFound(string.Format(ResponseMessages.NothingFound, "persons"));
             }
 
-            List<Person> AllPersons = _personService.GetAllPersonsWithAddresses();
+            List<Person> AllPersons = _personService.GetAllPersons(true);
             
             return Ok(_mapper.Map<List<PersonWithAddressesResponseDTO>>(AllPersons));
         }
@@ -57,7 +57,7 @@ namespace CRUDApi.Controllers
         [HttpGet("{id}")]
         public IActionResult GetPersonById(int id)
         {
-            var outputPerson = _personService.GetPersonById(id);
+            var outputPerson = _personService.GetPersonById(id, false);
             if (outputPerson == null)
             {
                 return NotFound(string.Format(ResponseMessages.IdNotFound, "Person", id));
@@ -75,20 +75,20 @@ namespace CRUDApi.Controllers
                 return BadRequest(string.Format(ResponseMessages.InputNotValid, "Street name"));
             }
             
-            List<Person> outputPersons = _personService.GetPersonsByStreet(streetName);
+            List<Person> outputPersons = _personService.GetPersonsByStreet(streetName, true);
             if (outputPersons.Count == 0)
             {
                 return NotFound(string.Format(ResponseMessages.NothingFound, $"persons living on street {streetName}"));
             }
 
-            return Ok(_mapper.Map<List<PersonResponseDTO>>(outputPersons));
+            return Ok(_mapper.Map<List<PersonWithAddressesResponseDTO>>(outputPersons));
         }
         
         // GET api/<PersonController>/5
         [HttpGet("{id}/with-addresses")]
         public IActionResult GetPersonByIdWithAddresses(int id)
         {
-            var outputPerson = _personService.GetPersonByIdWithAddresses(id);
+            var outputPerson = _personService.GetPersonById(id, true);
             if (outputPerson == null)
             {
                 return NotFound(string.Format(ResponseMessages.IdNotFound, "Person", id));
@@ -107,6 +107,11 @@ namespace CRUDApi.Controllers
             }
 
             var inputPerson = _mapper.Map<Person>(input);
+            if (_personService.IsAlreadyCreated(inputPerson))
+            {
+                return BadRequest(string.Format(ResponseMessages.AlreadyExists, "Person"));
+            }
+            
             List<Address> assignedAddresses = _peopleContext.Addresses.Where(a => input.AddressIds.Contains(a.Id)).ToList();
             if (assignedAddresses.Count != input.AddressIds.Count)
             {
@@ -132,7 +137,7 @@ namespace CRUDApi.Controllers
                 return BadRequest(string.Format(ResponseMessages.InputNotValid, "Person"));
             }
 
-            var outputPerson = _personService.GetPersonByIdWithAddresses(id);
+            var outputPerson = _personService.GetPersonById(id, true);
             if (outputPerson == null)
             {
                 return NotFound(string.Format(ResponseMessages.IdNotFound, "Person", id));
@@ -155,7 +160,7 @@ namespace CRUDApi.Controllers
         [HttpDelete("{id}")]
         public IActionResult DeletePerson(int id)
         {
-            var toBeDeleted = _personService.GetPersonById(id);
+            var toBeDeleted = _personService.GetPersonById(id, false);
 
             if (toBeDeleted == null)
             {

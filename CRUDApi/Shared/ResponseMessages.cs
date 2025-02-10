@@ -7,5 +7,6 @@
         public const string InputNotValid = "{0} data is invalid.";
         public const string OneOrMoreNotFound = "One or more {0} not found.";
         public const string FailedToCreate = "Failed to create {0}.";
+        public const string AlreadyExists = "{0} already exists.";
     }
 }
