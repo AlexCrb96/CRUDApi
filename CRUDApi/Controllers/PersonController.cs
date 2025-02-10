@@ -66,6 +66,24 @@ namespace CRUDApi.Controllers
             return Ok(_mapper.Map<PersonResponseDTO>(outputPerson));
         }
         
+        // GET api/<PersonController>/filter-by-street?streetName=Main%20Street
+        [HttpGet("filter-by-street")]
+        public IActionResult FilterPersonByStreet([FromQuery] string streetName)
+        {
+            if (string.IsNullOrEmpty(streetName))
+            {
+                return BadRequest(string.Format(ResponseMessages.InputNotValid, "Street name"));
+            }
+            
+            List<Person> outputPersons = _personService.GetPersonsByStreet(streetName);
+            if (outputPersons.Count == 0)
+            {
+                return NotFound(string.Format(ResponseMessages.NothingFound, $"persons living on street {streetName}"));
+            }
+
+            return Ok(_mapper.Map<List<PersonResponseDTO>>(outputPersons));
+        }
+        
         // GET api/<PersonController>/5
         [HttpGet("{id}/with-addresses")]
         public IActionResult GetPersonByIdWithAddresses(int id)

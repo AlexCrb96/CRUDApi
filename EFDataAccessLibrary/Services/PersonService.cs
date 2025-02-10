@@ -39,6 +39,14 @@ namespace EFDataAccessLibrary.Services
                                         .FirstOrDefault(p => p.Id == id);
         }
 
+        public List<Person> GetPersonsByStreet(string streetName)
+        {
+            var normalizedSearch = streetName.ToUpper();
+            
+            return _peopleContext.People
+                                        .Where(p => p.Addresses.Any( a => a.Street.ToUpper() == normalizedSearch)).ToList();
+        }
+
         public int AddPerson(Person input)
         {
             _peopleContext.People.Add(input);
