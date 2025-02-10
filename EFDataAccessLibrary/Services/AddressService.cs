@@ -27,6 +27,18 @@ namespace EFDataAccessLibrary.Services
             return _peopleContext.Addresses.FirstOrDefault(a => a.Id == id);
         }
 
+        public List<Address> GetAddressesByPartialStreetName(string partialStreetName)
+        {
+            var normalizedSearch = partialStreetName.ToUpper();
+            
+            return _peopleContext.Addresses
+                .Where(a => a.Street
+                                            .Replace(" ", "")
+                                            .ToUpper()
+                                            .Contains(partialStreetName))
+                .Distinct().ToList();
+        }
+        
         public int AddAddress(Address input)
         {
             _peopleContext.Addresses.Add(input);

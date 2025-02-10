@@ -5,6 +5,7 @@ using EFDataAccessLibrary.DataAccess;
 using EFDataAccessLibrary.Models;
 using EFDataAccessLibrary.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -49,6 +50,24 @@ namespace CRUDApi.Controllers
             }
 
             return Ok(_mapper.Map<AddressResponseDTO>(output));
+        }
+        
+        // GET api/<AddressController>/find-addresses-based-on-partial-street?streetName="Main"
+        [HttpGet("find-addresses-based-on-partial-street")]
+        public IActionResult GetAddressesBasedOnPartialStreet([FromQuery] string partialStreetName)
+        {
+            if (partialStreetName.IsNullOrEmpty())
+            {
+                return BadRequest(string.Format(ResponseMessages.InputNotValid, "Partial street name"));
+            }
+            
+            List<Address> output = _addressService.GetAddressesByPartialStreetName(partialStreetName);
+            if (output.Count == 0)
+            {
+                return NotFound(string.Format(ResponseMessages.NothingFound, "addresses"));
+            }
+            
+            return Ok(_mapper.Map<List<AddressResponseDTO>>(output));
         }
 
         // POST api/<AddressController>
