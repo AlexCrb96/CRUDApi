@@ -2,9 +2,11 @@
 using EFDataAccessLibrary.Models;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using EFDataAccessLibrary.Shared;
 
 namespace EFDataAccessLibrary.Services
 {
@@ -35,16 +37,24 @@ namespace EFDataAccessLibrary.Services
                 .Where(a => a.Street
                                             .Replace(" ", "")
                                             .ToUpper()
-                                            .Contains(partialStreetName))
+                                            .Contains(normalizedSearch))
                 .Distinct().ToList();
         }
         
         public int AddAddress(Address input)
         {
+            NormalizeAddressData(input);
+
             _peopleContext.Addresses.Add(input);
             _peopleContext.SaveChanges();
             
             return input.Id;
+        }
+
+        private static void NormalizeAddressData(Address input)
+        {
+            input.City = Utilities.ToTitleCase(input.City);
+            input.Street = Utilities.ToTitleCase(input.Street);
         }
 
         public void ModifyAddress(Address input, Address output)
@@ -61,6 +71,16 @@ namespace EFDataAccessLibrary.Services
         {
             _peopleContext.Remove(toBeDeleted);
             _peopleContext.SaveChanges();
+        }
+
+        public bool IsAlreadyCreated(Address input)
+        {
+            NormalizeAddressData(input);
+            
+            return _peopleContext.Addresses.Any(a =>
+                                                a.Street == input.Street &&
+                                                a.City == input.City &&
+                                                a.Number == input.Number);
         }
     }
 }

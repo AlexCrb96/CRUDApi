@@ -79,6 +79,11 @@ namespace CRUDApi.Controllers
                 return BadRequest(string.Format(ResponseMessages.InputNotValid, "Address"));
             }
             var inputAddress = _mapper.Map<Address>(input);
+
+            if (_addressService.IsAlreadyCreated(inputAddress))
+            {
+                return BadRequest(string.Format(ResponseMessages.AlreadyExists, "Address"));
+            }
             
             int outputAddressId = _addressService.AddAddress(inputAddress);
             if (outputAddressId == 0)
